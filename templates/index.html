@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="card left">
+            <h2>Model Setup</h2>
+            <select id="modelSelect">
+                <option value="">Loading models...</option>
+            </select>
+            
+            <div class="upload-group">
+                <input type="file" id="modelUpload" accept=".zip">
+                <button onclick="uploadModel()">Upload .zip</button>
+            </div>
+
+            <h2>Input</h2>
+            <textarea id="emailText" placeholder="Paste email content here..."></textarea>
+            <button onclick="checkEmail()">Check</button>
+        </div>
+
+        <div class="card right">
+            <h2>Inference Metrics</h2>
+            <div class="stats">
+                <div class="stat-box">Result: <div id="res-label" class="stat-value">-</div></div>
+                <div class="stat-box">Confidence: <div id="res-conf" class="stat-value">-</div></div>
+                <div class="stat-box">Time Taken: <div id="res-time" class="stat-value">-</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="terminal" id="terminal">
+        <p>> System initialized.</p>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        
+        function logMsg(msg) {
+            terminal.innerHTML += `<p>> ${msg}</p>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function fetchModels() {
+            try {
+                const res = await fetch('/models');
+                const data = await res.json();
+                const select = document.getElementById('modelSelect');
+                select.innerHTML = '';
+                if(data.models.length === 0) {
+                    select.innerHTML = '<option value="">No models found</option>';
+                    return;
+                }
+                data.models.forEach(m => {
+                    select.innerHTML += `<option value="${m}">${m}</option>`;
+                });
+                logMsg(`Found ${data.models.length} model(s) in directory.`);
+            } catch (e) {
+                logMsg("Error fetching models.");
+            }
+        }
+
+        async function uploadModel() {
+            const fileInput = document.getElementById('modelUpload');
+            if (!fileInput.files[0]) return logMsg("No file selected.");
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            logMsg("Uploading and verifying model...");
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    logMsg(data.message);
+                    fetchModels(); // Refresh dropdown
+                } else {
+                    logMsg(`Error: ${data.error}`);
+                }
+            } catch (e) {
+                logMsg("Upload failed.");
+            }
+            fileInput.value = '';
+        }
+
+        async function checkEmail() {
+            const text = document.getElementById('emailText').value;
+            const model = document.getElementById('modelSelect').value;
+            
+            if (!text.trim()) return logMsg("Please paste an email first.");
+            if (!model) return logMsg("No model selected.");
+
+            logMsg(`Sending request using model: ${model}`);
+            logMsg(`Awaiting backend... (Loading model to memory if needed)`);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email_text: text, model: model })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.loaded_fresh) logMsg(`[System] ${model} loaded into memory successfully.`);
+                    logMsg(`Inference complete in ${data.time_taken}s.`);
+                    
+                    const labelDiv = document.getElementById('res-label');
+                    labelDiv.innerText = data.prediction;
+                    labelDiv.className = `stat-value ${data.prediction === 'Phishing' ? 'phishing' : 'safe'}`;
+                    
+                    document.getElementById('res-conf').innerText = `${data.confidence}%`;
+                    document.getElementById('res-time').innerText = `${data.time_taken}s`;
+                } else {
+                    logMsg(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                logMsg("Failed to connect to the server.");
+            }
+        }
+
+        // Initialize
+        fetchModels();
+    </script>
+</body>
+</html>

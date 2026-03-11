@@ -1,0 +1,64 @@
+:root {
+    --bg-color: #f4f4f9; --card-bg: #ffffff; --text-color: #334155;
+    --border-color: #cbd5e1; --primary: #0f172a; --primary-hover: #334155;
+    --phishing: #ef4444; --safe: #10b981; --radius: 12px;
+    --term-bg: #1e1e1e; --term-text: #4ade80;
+}
+
+body {
+    font-family: system-ui, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    margin: 0; padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh;
+}
+
+.wrapper {
+    width: 100%; max-width: 900px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: var(--card-bg); padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 6px -4px rgba(0,0,0,0.1);
+}
+
+h2 { margin-top: 0; font-size: 1.3rem; color: var(--primary); }
+
+textarea, select, input[type="file"] {
+    width: 100%; margin-bottom: 15px; padding: 10px;
+    border: 1px solid var(--border-color); border-radius: var(--radius);
+    box-sizing: border-box; font-family: inherit;
+}
+textarea { height: 160px; resize: vertical; }
+
+button {
+    width: 100%; padding: 12px; background: var(--primary);
+    color: white; border: none; border-radius: var(--radius);
+    cursor: pointer; font-weight: 500;
+}
+button:hover { background: var(--primary-hover); }
+
+.upload-group { display: flex; gap: 10px; margin-bottom: 15px; }
+.upload-group button { width: auto; white-space: nowrap; }
+
+.stats { display: flex; flex-direction: column; gap: 15px; }    
+.stat-box {
+    padding: 15px; background: var(--bg-color);
+    border-radius: var(--radius); border: 1px solid var(--border-color);
+}
+.stat-value { font-weight: bold; font-size: 1.4rem; margin-top: 5px; }
+
+.phishing { color: var(--phishing); }
+.safe { color: var(--safe); }
+
+.terminal {
+    width: 100%; max-width: 900px; height: 150px;
+    background: var(--term-bg); color: var(--term-text);
+    padding: 15px; border-radius: var(--radius);
+    font-family: monospace; overflow-y: auto; box-sizing: border-box;
+}
+.terminal p { margin: 5px 0; font-size: 0.9rem; }
