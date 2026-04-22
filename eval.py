@@ -11,7 +11,6 @@ from tqdm import tqdm
 from sklearn.metrics import confusion_matrix
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-# ─── Config ───────────────────────────────────────────────────────────────────
 
 DATASET_PATH = r'C:\Users\Charls\Documents\PhishNET\poc_dataset_20k.csv'
 MODEL_PATH   = r'models\my_phising_model'

@@ -1,132 +1,305 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PhishNET — Analyze suspicious emails with deep learning models.">
     <title>PhishNET</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="wrapper">
-        <div class="card left">
-            <h2>Model Setup</h2>
-            <select id="modelSelect">
-                <option value="">Loading models...</option>
-            </select>
-            
-            <div class="upload-group">
-                <input type="file" id="modelUpload" accept=".zip">
-                <button onclick="uploadModel()">Upload .zip</button>
-            </div>
 
-            <h2>Input</h2>
-            <textarea id="emailText" placeholder="Paste email content here..."></textarea>
-            <button onclick="checkEmail()">Check</button>
+    <nav class="navbar">
+        <div class="logo-group">
+            <div class="logo-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <span class="logo-text">PhishNET</span>
         </div>
 
-        <div class="card right">
-            <h2>Inference Metrics</h2>
-            <div class="stats">
-                <div class="stat-box">Result: <div id="res-label" class="stat-value">-</div></div>
-                <div class="stat-box">Confidence: <div id="res-conf" class="stat-value">-</div></div>
-                <div class="stat-box">Time Taken: <div id="res-time" class="stat-value">-</div></div>
+        <div class="theme-toggle" id="themeToggle">
+            <button type="button" data-theme-value="light" aria-label="Light mode" title="Light mode">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+            </button>
+            <button type="button" data-theme-value="dark" aria-label="Dark mode" title="Dark mode">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="wrapper">
+            <div class="card" id="inputCard">
+                <div class="card-title">
+                    <div class="card-title-icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h2>Model & Input</h2>
+                </div>
+
+                <div class="field-group">
+                    <label for="modelSelect">Model</label>
+                    <select id="modelSelect">
+                        <option value="">Loading models…</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label>Upload model</label>
+                    <div class="upload-group">
+                        <div class="file-input-wrapper">
+                            <input type="file" id="modelUpload" accept=".zip" aria-label="Upload model zip file">
+                            <div class="file-input-label" id="fileLabel">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                <span>Choose .zip file…</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="uploadModel()" id="uploadBtn">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span class="btn-label">Upload</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-divider"></div>
+
+                <div class="field-group">
+                    <label for="emailText">Email content</label>
+                    <textarea id="emailText" placeholder="Paste email content here…" rows="6"></textarea>
+                </div>
+
+                <button class="btn btn-primary" onclick="checkEmail()" id="checkBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+                    </svg>
+                    <span class="btn-label">Check</span>
+                </button>
+            </div>
+
+            <div class="card" id="resultsCard">
+                <div class="card-title">
+                    <div class="card-title-icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                    </div>
+                    <h2>Results</h2>
+                </div>
+
+                <div class="verdict-banner" id="verdictBanner">
+                    <div class="verdict-icon" id="verdictIcon"></div>
+                    <span id="verdictText"></span>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="stat-box" id="resultBox">
+                        <div class="stat-label">
+                            <span class="stat-label-icon" aria-hidden="true">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </span>
+                            Result
+                        </div>
+                        <div id="res-label" class="stat-value">—</div>
+                    </div>
+                    <div class="stat-box" id="confidenceBox">
+                        <div class="stat-label">
+                            <span class="stat-label-icon" aria-hidden="true">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            </span>
+                            Confidence
+                        </div>
+                        <div id="res-conf" class="stat-value">—</div>
+                    </div>
+                    <div class="stat-box" id="timeBox">
+                        <div class="stat-label">
+                            <span class="stat-label-icon" aria-hidden="true">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </span>
+                            Time
+                        </div>
+                        <div id="res-time" class="stat-value">—</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="terminal" id="terminal">
-        <p>> System initialized.</p>
+    <div class="terminal-section">
+        <div class="terminal-window">
+            <div class="terminal-header" aria-hidden="true">
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-title">log</span>
+            </div>
+            <div class="terminal-body" id="terminal" role="log" aria-live="polite">
+                <p>System initialized.</p>
+            </div>
+        </div>
     </div>
 
     <script>
+        // Theme
+        const htmlEl = document.documentElement;
+        const toggleBtns = document.querySelectorAll('.theme-toggle button');
+
+        function setTheme(theme) {
+            htmlEl.setAttribute('data-theme', theme);
+            localStorage.setItem('phishnet-theme', theme);
+            toggleBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.themeValue === theme);
+            });
+        }
+
+        (function initTheme() {
+            const saved = localStorage.getItem('phishnet-theme');
+            if (saved) { setTheme(saved); }
+            else if (window.matchMedia('(prefers-color-scheme: dark)').matches) { setTheme('dark'); }
+            else { setTheme('light'); }
+        })();
+
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', () => setTheme(btn.dataset.themeValue));
+        });
+
+        // File input label
+        document.getElementById('modelUpload').addEventListener('change', function() {
+            const label = document.getElementById('fileLabel').querySelector('span');
+            label.textContent = this.files[0] ? this.files[0].name : 'Choose .zip file…';
+        });
+
+        // Terminal
         const terminal = document.getElementById('terminal');
-        
         function logMsg(msg) {
-            terminal.innerHTML += `<p>> ${msg}</p>`;
+            const p = document.createElement('p');
+            p.textContent = msg;
+            terminal.appendChild(p);
             terminal.scrollTop = terminal.scrollHeight;
         }
 
+        // Fetch Models
         async function fetchModels() {
             try {
                 const res = await fetch('/models');
                 const data = await res.json();
                 const select = document.getElementById('modelSelect');
                 select.innerHTML = '';
-                if(data.models.length === 0) {
+                if (data.models.length === 0) {
                     select.innerHTML = '<option value="">No models found</option>';
                     return;
                 }
                 data.models.forEach(m => {
-                    select.innerHTML += `<option value="${m}">${m}</option>`;
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    select.appendChild(opt);
                 });
-                logMsg(`Found ${data.models.length} model(s) in directory.`);
+                logMsg(`Found ${data.models.length} model(s).`);
             } catch (e) {
                 logMsg("Error fetching models.");
             }
         }
 
+        // Upload
         async function uploadModel() {
             const fileInput = document.getElementById('modelUpload');
+            const btn = document.getElementById('uploadBtn');
             if (!fileInput.files[0]) return logMsg("No file selected.");
-            
+
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
-            
-            logMsg("Uploading and verifying model...");
+            btn.classList.add('loading');
+            logMsg("Uploading model…");
+
             try {
                 const res = await fetch('/upload', { method: 'POST', body: formData });
                 const data = await res.json();
-                
-                if (res.ok) {
-                    logMsg(data.message);
-                    fetchModels(); // Refresh dropdown
-                } else {
-                    logMsg(`Error: ${data.error}`);
-                }
-            } catch (e) {
-                logMsg("Upload failed.");
-            }
+                if (res.ok) { logMsg(data.message); fetchModels(); }
+                else { logMsg(`Error: ${data.error}`); }
+            } catch (e) { logMsg("Upload failed."); }
+
+            btn.classList.remove('loading');
             fileInput.value = '';
+            document.getElementById('fileLabel').querySelector('span').textContent = 'Choose .zip file…';
         }
 
+        // Check
         async function checkEmail() {
             const text = document.getElementById('emailText').value;
             const model = document.getElementById('modelSelect').value;
-            
-            if (!text.trim()) return logMsg("Please paste an email first.");
+            const btn = document.getElementById('checkBtn');
+
+            if (!text.trim()) return logMsg("Paste an email first.");
             if (!model) return logMsg("No model selected.");
 
-            logMsg(`Sending request using model: ${model}`);
-            logMsg(`Awaiting backend... (Loading model to memory if needed)`);
-            
+            btn.classList.add('loading');
+            logMsg(`Using model: ${model}`);
+            resetResults();
+
             try {
                 const response = await fetch('/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email_text: text, model: model })
                 });
-                
                 const data = await response.json();
-                
                 if (response.ok) {
-                    if (data.loaded_fresh) logMsg(`[System] ${model} loaded into memory successfully.`);
-                    logMsg(`Inference complete in ${data.time_taken}s.`);
-                    
-                    const labelDiv = document.getElementById('res-label');
-                    labelDiv.innerText = data.prediction;
-                    labelDiv.className = `stat-value ${data.prediction === 'Phishing' ? 'phishing' : 'safe'}`;
-                    
-                    document.getElementById('res-conf').innerText = `${data.confidence}%`;
-                    document.getElementById('res-time').innerText = `${data.time_taken}s`;
+                    if (data.loaded_fresh) logMsg(`${model} loaded into memory.`);
+                    logMsg(`Done in ${data.time_taken}s.`);
+                    displayResult(data);
                 } else {
                     logMsg(`Error: ${data.error}`);
                 }
             } catch (error) {
-                logMsg("Failed to connect to the server.");
+                logMsg("Failed to connect.");
             }
+
+            btn.classList.remove('loading');
         }
 
-        // Initialize
+        function displayResult(data) {
+            const isPhishing = data.prediction === 'Phishing';
+
+            const labelDiv = document.getElementById('res-label');
+            labelDiv.innerText = data.prediction;
+            labelDiv.className = `stat-value ${isPhishing ? 'phishing' : 'safe'}`;
+
+            document.getElementById('res-conf').innerText = `${data.confidence}%`;
+            document.getElementById('res-time').innerText = `${data.time_taken}s`;
+
+            const resultBox = document.getElementById('resultBox');
+            resultBox.className = `stat-box ${isPhishing ? 'result-highlight-phishing' : 'result-highlight-safe'}`;
+
+            const banner = document.getElementById('verdictBanner');
+            banner.className = `verdict-banner show ${isPhishing ? 'phishing' : 'safe'}`;
+
+            const verdictIcon = document.getElementById('verdictIcon');
+            verdictIcon.innerHTML = isPhishing
+                ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+                : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+
+            document.getElementById('verdictText').textContent = isPhishing
+                ? `Phishing — ${data.confidence}% confidence`
+                : `Safe — ${data.confidence}% confidence`;
+        }
+
+        function resetResults() {
+            document.getElementById('res-label').innerText = '—';
+            document.getElementById('res-label').className = 'stat-value';
+            document.getElementById('res-conf').innerText = '—';
+            document.getElementById('res-time').innerText = '—';
+            document.getElementById('resultBox').className = 'stat-box';
+            document.getElementById('verdictBanner').className = 'verdict-banner';
+        }
+
         fetchModels();
     </script>
 </body>
